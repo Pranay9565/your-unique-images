@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Pics — Grid</title>
+<style>
+  body {
+    background: #181818;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  h1 {
+    text-align: center;
+    margin: 20px 0 6px;
+    letter-spacing: 1px;
+    font-weight: 400;
+  }
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr); /* 10 columns */
+    gap: 10px; /* spacing between tiles */
+    width: calc(100vw - 40px);
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 12px;
+    background: #222;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.4);
+    flex-grow: 1;
+  }
+  .grid-item {
+    width: 100%;
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    border-radius: 6px;
+    border: 1px solid #222;
+    background: #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .18s ease, filter .18s ease;
+  }
+  .grid-item:hover img {
+    transform: scale(1.04);
+    filter: brightness(1.06);
+  }
+  .upload-bar {
+    text-align: center;
+    margin: 18px;
+  }
+  .upload-bar label {
+    background: #444;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.15s;
+    display: inline-block;
+  }
+  .upload-bar label:hover { background: #666; }
+  #fileInput { display: none; }
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  .overlay.active { display: flex; }
+  .overlay img {
+    max-width: 92%;
+    max-height: 92%;
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.7);
+    cursor: auto;
+  }
+  footer {
+    background: #111;
+    color: #aaa;
+    text-align: center;
+    padding: 16px;
+    font-size: 14px;
+  }
+  footer a {
+    color: #6cf;
+    text-decoration: none;
+  }
+  footer a:hover {
+    text-decoration: underline;
+  }
+  .disclaimer {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+<h1>Upload your favourite moments</h1>
+
+<div class="grid-container" id="grid"></div>
+
+<div class="upload-bar">
+  <label for="fileInput" id="uploadLabel">Upload Images</label>
+  <input id="fileInput" type="file" accept="image/*" multiple>
+</div>
+
+<div class="overlay" id="overlay">
+  <img id="overlayImg" src="" alt="Preview">
+</div>
+
+<footer>
+  <p>Maintained by <strong>Pranay</strong></p>
+  <p>Contact: <a href="mailto:b25510@students.iitmandi.ac.in">Email</a> | 
+     <a href="https://github.com/Pranay9565" target="_blank">GitHub</a></p>
+  <p class="disclaimer">This is an experimental build which is free.  
+  The released public version will be chargeable in order to support and maintain the website.</p>
+</footer>
+
+<script>
+const grid = document.getElementById('grid');
+const fileInput = document.getElementById('fileInput');
+const uploadLabel = document.getElementById('uploadLabel');
+const overlay = document.getElementById('overlay');
+const overlayImg = document.getElementById('overlayImg');
+
+const MAX_TILES = 100; // 10 x 10 grid
+const tiles = [];
+
+// Create empty tiles
+for (let i = 0; i < MAX_TILES; i++) {
+  const tile = document.createElement('div');
+  tile.className = 'grid-item';
+  grid.appendChild(tile);
+  tiles.push(tile);
+
+  tile.addEventListener('click', () => {
+    const img = tile.querySelector('img');
+    if (img && img.src) {
+      overlayImg.src = img.src;
+      overlay.classList.add('active');
+    }
+  });
+}
+
+// Close overlay
+overlay.addEventListener('click', () => {
+  overlay.classList.remove('active');
+  overlayImg.src = "";
+});
+
+// Upload images and store in-memory (Data URLs)
+fileInput.addEventListener('change', (evt) => {
+  const files = Array.from(evt.target.files);
+  if (!files.length) return;
+
+  for (let file of files) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+
+      // Find first empty tile
+      const tile = tiles.find(t => !t.querySelector('img'));
+      if (!tile) {
+        // Disable upload if full
+        fileInput.disabled = true;
+        uploadLabel.style.background = "#666";
+        uploadLabel.style.cursor = "not-allowed";
+        return;
+      }
+
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      tile.innerHTML = '';
+      tile.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  fileInput.value = "";
+});
+</script>
+</body>
+</html>
